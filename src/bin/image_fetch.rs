@@ -1,4 +1,4 @@
-use std::fs::{DirEntry, File};
+use std::fs::{File, rename, read_dir};
 use std::io::{BufRead, BufReader};
 use std::process::Command;
 
@@ -16,10 +16,26 @@ fn main() -> Result<(), std::io::Error> {
         cmd_i.output().expect(&format!("Can't download i_band of {}", line));
     }
 
-    let mut cmd = Command::new("mv");
-    cmd.arg("*.gz");
-    cmd.arg("images/");
-    cmd.output().expect("Can't move *.gz files");
+    let mut gz_list: Vec<String> = Vec::new();
+
+    for file in read_dir("./")? {
+        let entry = file?;
+        let path = entry.path();
+        if !path.is_dir() {
+            match entry.file_name().into_string() {
+                Ok(path) if path.contains(".gz") => {
+                    gz_list.push(path);
+                }
+                _ => (),
+            }
+        }
+    }
+
+    for gz in gz_list {
+        let old_path = format!("./{}", gz);
+        let new_path = format!("images/{}", gz);
+        rename(old_path, new_path)?;
+    }
 
     println!("Complete!");
 
@@ -27,7 +43,7 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn iauname_to_link(name: &str) -> (String, String) {
-    let mut s = "https://dr12.sdss.org/sas/dr16/sdss/atlas/v1/detect/sdss";
+    let s = "https://dr12.sdss.org/sas/dr16/sdss/atlas/v1/detect/sdss";
     let name_vec = name.chars().collect::<Vec<char>>();
     let hour = format!("{}{}h", name_vec[1], name_vec[2]);
     let sign = match name_vec[10] {
