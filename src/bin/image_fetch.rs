@@ -1,41 +1,56 @@
+#[macro_use]
+extern crate puruda;
+extern crate peroxide;
+use puruda::*;
+use peroxide::fuga::*;
+
+use std::error::Error;
 use std::fs::{File, rename, read_dir};
 use std::io::{BufRead, BufReader};
 use std::process::Command;
 
-fn main() -> Result<(), std::io::Error> {
-    let link = File::open("link.txt")?;
-    let reader = BufReader::new(link);
+fn main() -> Result<(), Box<dyn Error>> {
+    //let link = File::open("link.txt")?;
+    //let reader = BufReader::new(link);
+    let catalog: Col3<
+        Vec<String>, 
+        Vec<usize>, 
+        Vec<usize>
+    >;
+    catalog = Col3::read_csv("catalog.csv", ',')?;
 
-    for line in reader.lines() {
-        let line = line?;
-        println!("Downloading {}...", line);
-        let (r, i) = iauname_to_link(&line);
-        let mut cmd_r = wget(&r);
-        let mut cmd_i = wget(&i);
-        cmd_r.output().expect(&format!("Can't download r_band of {}", line));
-        cmd_i.output().expect(&format!("Can't download i_band of {}", line));
-    }
+    catalog.c1().print();
 
-    let mut gz_list: Vec<String> = Vec::new();
+    //for line in reader.lines() {
+    //    let line = line?;
+    //    println!("Downloading {}...", line);
+    //    let (r, i) = iauname_to_link(&line);
+    //    let mut cmd_r = wget(&r);
+    //    let mut cmd_i = wget(&i);
+    //    cmd_r.output().expect(&format!("Can't download r_band of {}", line));
+    //    cmd_i.output().expect(&format!("Can't download i_band of {}", line));
+    //}
 
-    for file in read_dir("./")? {
-        let entry = file?;
-        let path = entry.path();
-        if !path.is_dir() {
-            match entry.file_name().into_string() {
-                Ok(path) if path.contains(".gz") => {
-                    gz_list.push(path);
-                }
-                _ => (),
-            }
-        }
-    }
+    //let mut gz_list: Vec<String> = Vec::new();
 
-    for gz in gz_list {
-        let old_path = format!("./{}", gz);
-        let new_path = format!("images/{}", gz);
-        rename(old_path, new_path)?;
-    }
+    //for file in read_dir("./")? {
+    //    let entry = file?;
+    //    let path = entry.path();
+    //    if !path.is_dir() {
+    //        match entry.file_name().into_string() {
+    //            Ok(path) if path.contains(".gz") => {
+    //                gz_list.push(path);
+    //            }
+    //            _ => (),
+    //        }
+    //    }
+    //}
+
+    //for gz in gz_list {
+    //    let old_path = format!("./{}", gz);
+    //    let new_path = format!("images/{}", gz);
+    //    rename(old_path, new_path)?;
+    //}
 
     println!("Complete!");
 
