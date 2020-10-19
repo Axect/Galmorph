@@ -24,11 +24,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         let pid = catalog.c2()[i];
         let aid = catalog.c3()[i];
 
-        let link = get_link(name, pid, aid);        
+        let (link, sersic) = get_link(name, pid, aid);
 
         println!("Downloading {}...", name);
         let mut cmd = wget(&link);
         cmd.output().expect(&format!("Can't download {}", name));
+        println!("Downloading sersic profile of {}...", name);
+        let mut cmd2 = wget(&sersic);
+        cmd2.output().expect(&format!("Can't download sersic profile of {}", name));
     }
 
     let mut gz_list: Vec<String> = Vec::new();
@@ -56,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_link(name: &str, pid: usize, aid: usize) -> String {
+fn get_link(name: &str, pid: usize, aid: usize) -> (String, String) {
     let s = "https://dr12.sdss.org/sas/dr16/sdss/atlas/v1/detect/v1_0";
     let name_vec = name.chars().collect::<Vec<char>>();
     let hour = format!("{}{}h", name_vec[1], name_vec[2]);
@@ -74,7 +77,8 @@ fn get_link(name: &str, pid: usize, aid: usize) -> String {
     };
 
     let full = format!("{}/{}/{}/{}/atlases/{}/{}-{}-atlas-{}.fits.gz", s, hour, second, name, pid, name, pid, aid);
-    full
+    let sersic = format!("{}/{}/{}/{}/atlases/{}/{}-{}-sersic.fits.gz", s, hour, second, name, pid, name, pid);
+    (full, sersic)
 }
 
 //fn iauname_to_link(name: &str) -> (String, String) {
