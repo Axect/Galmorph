@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Vec<usize>, 
         Vec<usize>
     >;
-    catalog = Col3::read_csv("catalog.csv", ',')?;
+    catalog = Col3::read_csv("catalog2.csv", ',')?;
 
     for i in 0 .. catalog.c1().len() {
         let name = &catalog.c1()[i];
